@@ -1,0 +1,30 @@
+{
+    "cSpell.words": [
+        "asyncpg",
+        "autoflush",
+        "autouse",
+        "deadpool",
+        "dotenv",
+        "fastapi",
+        "goit",
+        "ilike",
+        "passlib",
+        "poolclass",
+        "pydantic",
+        "pytest",
+        "pythonpath",
+        "sessionmaker",
+        "setex",
+        "sqlalchemy",
+        "uvicorn",
+        "Дозволяє",
+        "Завантажуємо",
+        "запити",
+        "коректного",
+        "Отримання",
+        "Отримуємо",
+        "сесію",
+        "файл",
+        "Формування"
+    ]
+}

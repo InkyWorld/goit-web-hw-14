@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "goit-web-hw-14"
+version = "0.1.0"
+description = ""
+authors = ["ink404dot <94466285+ink404dot@users.noreply.github.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.8"
+alembic = "^1.14.1"
+sqlalchemy = "^2.0.38"
+asyncpg = "^0.30.0"
+uvicorn = "^0.34.0"
+pydantic = {extras = ["email"], version = "^2.10.6"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = "^3.4.0"
+python-multipart = "^0.0.20"
+bcrypt = "3.2.0"
+fastapi-mail = "^1.4.2"
+python-dotenv = "^1.0.1"
+redis = "^5.2.1"
+fastapi-limiter = "^0.1.6"
+cloudinary = "^1.42.2"
+jinja2 = "^3.1.6"
+
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^8.2.3"
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
+pytest-asyncio = "^0.25.3"
+httpx = "^0.28.1"
+aiosqlite = "^0.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
