@@ -42,13 +42,13 @@ class Cloudinary:
             ```
 
         """
+        print("2222222222222222222222222222222222222222")
         # Завантажуємо файл до Cloudinary
         try:
             upload_result = upload(
-                file.file, folder=f"{self.public_folder}/{user_email}", overwrite=True
+                file.file, folder=f"{self.public_folder}{user_email}", overwrite=True
             )
-            print("-------------------------------")
-            print(upload_result)
+
              # Отримання `public_id`
             public_id = upload_result.get("public_id")
             version = upload_result.get("version")

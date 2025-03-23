@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
 from sqlalchemy import text
@@ -49,6 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
     print("App shutting down...")
     await redis_manager.close()
+    await FastAPILimiter.close()
 
 
 
@@ -75,7 +77,7 @@ app.include_router(profile_router, prefix="/api")
 
 
 @app.get("/admin", dependencies=[Depends(admin_access)])
-def index():
+async def index():
     """
     Admin endpoint to verify admin access.
 
@@ -101,7 +103,8 @@ def index():
         assert response.json() == {"message": "you admin!"}
         ```
     """
-    return {"message": "you admin!"}
+    
+    return JSONResponse(content={"message": "you admin!"})
 
 
 @app.get("/api/health_checker")
@@ -135,6 +138,7 @@ async def health_checker(db: AsyncSession = Depends(get_db)):
         # Make request
         result = await db.execute(text("SELECT 1"))
         result = result.fetchone()
+        print(result)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Database is not configured correctly"

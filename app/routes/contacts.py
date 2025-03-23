@@ -49,11 +49,9 @@ async def get_contacts(
     cache_key = f"contacts:limit={limit}_offset={offset}"
     cached_contacts = await repositories_contacts.get_all_contacts_from_cache(cache_key, redis_client)
     if cached_contacts:
-        print("cached")
         return cached_contacts
     contacts = await repositories_contacts.get_contacts(user, limit, offset, db)
-    serializable_value = [contact.__getstate__() for contact in contacts]
-    await repositories_contacts.set_to_cache(cache_key, serializable_value, redis_client)
+    await repositories_contacts.set_contact_to_cache(cache_key, contacts, redis_client)
     return contacts
 
 
@@ -126,7 +124,7 @@ async def get_contact(
     contact = await repositories_contacts.get_contact(user, contact_id, db)
     if contact is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
-    await repositories_contacts.set_to_cache(cache_key, contact.__getstate__(), redis_client)
+    await repositories_contacts.set_contact_to_cache(cache_key, contact, redis_client)
     return contact
 
 
@@ -244,6 +242,5 @@ async def get_birthdays(
     contacts = await repositories_contacts.get_upcoming_birthdays(user, db)
     if not contacts:
         raise HTTPException(status_code=404, detail="No upcoming birthdays found")
-    serializable_value = [contact.__getstate__() for contact in contacts]
-    await repositories_contacts.set_to_cache(cache_key, serializable_value, redis_client)
+    await repositories_contacts.set_contact_to_cache(cache_key, contacts, redis_client)
     return contacts

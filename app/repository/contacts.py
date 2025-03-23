@@ -2,12 +2,10 @@ import calendar
 from datetime import date, datetime, timedelta
 import json
 from typing import Optional
-from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy import and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.redis import get_redis
 from app.models.models import Contact, User
 from app.schemas.contact import ContactSchema, ContactUpdateSchema
 
@@ -28,7 +26,7 @@ async def get_contacts(user: User, limit: int, offset: int, db: AsyncSession):
     Returns:
         list[Contact]: A list of Contact objects belonging to the user.
     """
-    stmt = select(Contact).where(Contact.user == user).offset(offset).limit(limit)
+    stmt = select(Contact).where(Contact.user_id == user.id).offset(offset).limit(limit)
     contacts = await db.execute(stmt)
     return contacts.scalars().all()
 
@@ -45,7 +43,7 @@ async def get_contact(user: User, contact_id: int, db: AsyncSession):
     Returns:
         Contact | None: The contact object if found, or None if no such contact exists.
     """
-    stmt = select(Contact).where(Contact.user == user).filter_by(id=contact_id)
+    stmt = select(Contact).where(Contact.user_id == user.id).filter_by(id=contact_id)
     contact = await db.execute(stmt)
     return contact.scalar_one_or_none()
 
@@ -65,7 +63,7 @@ async def create_contacts(user: User, body: ContactSchema, db: AsyncSession):
     contact = Contact(**body.model_dump(exclude_unset=True))
     contact.date_of_birth = datetime.strptime(contact.date_of_birth, '%Y-%m-%d').date()
     contact.user_id = user.id
-    db.add(contact)
+    await db.add(contact)
     await db.commit()
     await db.refresh(contact)
     return contact
@@ -85,8 +83,7 @@ async def update_contacts(user: User, contact_id: int, body: ContactUpdateSchema
     Returns:
         Contact | None: The updated contact object if found and updated, or None if the contact doesn't exist.
     """
-    
-    stmt = select(Contact).where(Contact.user == user).filter_by(id=contact_id)
+    stmt = select(Contact).where(Contact.user_id == user.id).filter_by(id=contact_id)
     result = await db.execute(stmt)
     contact = result.scalar_one_or_none()
     if contact:
@@ -113,7 +110,7 @@ async def delete_contact(user: User, contact_id: int, db: AsyncSession):
     Returns:
         Contact | None: The deleted contact object if found and deleted, or None if the contact doesn't exist.
     """
-    stmt = select(Contact).where(Contact.user == user).filter_by(id=contact_id)
+    stmt = select(Contact).where(Contact.user_id == user.id).filter_by(id=contact_id)
     contact = await db.execute(stmt)
     contact = contact.scalar_one_or_none()
     if contact:
@@ -148,7 +145,7 @@ async def search_by(user: User, db: AsyncSession,
     if email:
         filters.append(Contact.email.ilike(f"%{email}%"))
 
-    stmt = select(Contact).where(Contact.user == user).where(and_(*filters)) if filters else select(Contact)
+    stmt = select(Contact).where(Contact.user_id == user.id).where(and_(*filters)) if filters else select(Contact)
     contacts = await db.execute(stmt)
     return contacts.scalars().all()
 
@@ -182,7 +179,7 @@ async def get_upcoming_birthdays(user: User, db: AsyncSession):
             (extract('day', Contact.date_of_birth) <= next_week.day))  
         )
 
-    stmt = select(Contact).where(Contact.user == user).where(query)
+    stmt = select(Contact).where(Contact.user_id == user.id).where(query)
     result = await db.execute(stmt)
     contacts = result.scalars().all()
     return contacts
@@ -228,7 +225,7 @@ async def get_contact_from_cache(contact_cache_key: str, redis_client: Redis):
         return contact
     return None
 
-async def set_to_cache(key: str, value: dict, redis_client: Redis, ttl: int = 60, ):
+async def set_contact_to_cache(key: str, contacts: dict, redis_client: Redis, ttl: int = 60):
     """
     Store data in Redis cache.
 
@@ -241,4 +238,5 @@ async def set_to_cache(key: str, value: dict, redis_client: Redis, ttl: int = 60
     Returns:
         None: This function does not return any value.
     """
-    await redis_client.setex(key, ttl, json.dumps(value))
+    serializable_value = [contact.__getstate__() for contact in contacts]
+    await redis_client.setex(key, ttl, json.dumps(serializable_value))

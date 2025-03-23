@@ -95,7 +95,7 @@ class Auth:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
             expire = datetime.now(timezone.utc) + timedelta(
-                minutes=self.REFRESH_TOKEN_EXPIRE_DAYS
+                days=self.REFRESH_TOKEN_EXPIRE_DAYS
             )
         to_encode.update(
             {"iat": datetime.now(timezone.utc), "exp": expire, "scope": "refresh_token"}
@@ -159,7 +159,6 @@ class Auth:
         )
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
-            print(payload)
             if payload["scope"] == "access_token":
                 email = payload["sub"]
                 if email is None:

@@ -2,3 +2,8 @@ __pycache__
 .venv
 .env
 postgres-data
+test.db
+.coverage
+.vscode
+.pytest_cache
+.git

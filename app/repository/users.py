@@ -23,6 +23,8 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     stmt = select(User).filter(User.email == email)
     user = await db.execute(stmt)
     user = user.scalar_one_or_none()
+    print(email)
+    print(user, "======================")
     return user
 
 
@@ -40,8 +42,9 @@ async def create_user(body: UserCreationSchema, db: AsyncSession = Depends(get_d
     Returns:
         User: The newly created user object.
     """
+    print(db)
     user = User(**body.model_dump())
-    db.add(user)
+    await db.add(user)
     await db.commit()
     await db.refresh(user)
     return user
@@ -77,8 +80,10 @@ async def confirmed_email(email: str, db: AsyncSession) -> None:
         None: This function does not return any value.
     """
     user = await get_user_by_email(email, db)
-    user.verified = True
-    await db.commit()
+    if user:
+        user.verified = True
+        await db.commit()
+    return user if user else None
 
 
 async def update_avatar_url(email: str, url: str | None, db: AsyncSession) -> User:
@@ -96,6 +101,7 @@ async def update_avatar_url(email: str, url: str | None, db: AsyncSession) -> Us
     Raises:
         ValueError: If the user with the provided email is not found in the database.
     """
+    print("111111111111111111111111111111111111111")
     user = await get_user_by_email(email, db)
     user.avatar = url
     await db.commit()

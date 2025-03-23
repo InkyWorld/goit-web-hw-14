@@ -126,6 +126,7 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
     """
     email = await auth_service.verify_email_token(token)
     user = await repositories_users.get_user_by_email(email, db)
+    print(user)
     if user is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error")
     if user.verified:
@@ -154,9 +155,11 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
     """
     user = await repositories_users.get_user_by_email(body.email, db)
 
-    if user.verified:
-        return {"message": "Your email is already confirmed"}
     if user:
+        if user.verified:
+            return {"message": "Your email is already confirmed"}
         background_tasks.add_task(send_email, user.email, user.username, str(request.base_url))
+    else:
+        return {"message": "User is`t exist"}
     return {"message": "Check your email for confirmation."}
 

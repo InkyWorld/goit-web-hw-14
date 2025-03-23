@@ -53,7 +53,9 @@ class RoleAccess:
             await role_access(request, user)
             ```
         """
+        print(f"Checking if user role {user.role} is allowed...")
         if user.role not in self.allowed_roles:
+            print(f"User {user.role} is not allowed")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="FORBIDDEN"
